@@ -8,11 +8,20 @@
 # @Last modified by:   Brian Cherinka
 # @Last Modified time: 2018-06-30 14:01:05
 
-from __future__ import print_function, division, absolute_import
+from __future__ import absolute_import, division, print_function
+
 import os
-import six
+import sys
 from collections import OrderedDict
-from configparser import SafeConfigParser
+
+import six
+
+
+if ((sys.version_info.major == 3 and sys.version_info.minor > 2) or
+        (sys.version_info.major == 2 and sys.version_info.minor >= 7)):
+    from configparser import ConfigParser as SafeConfigParser
+else:
+    from configparser import SafeConfigParser
 
 
 class Tree(object):
@@ -111,7 +120,12 @@ class Tree(object):
         assert os.path.isfile(self.configfile) is True, 'configfile {0} must exist in the proper directory'.format(self.configfile)
 
         self._cfg = SafeConfigParser()
-        self._cfg.read(self.configfile)
+
+        try:
+            self._cfg.read(self.configfile.decode('utf-8'))
+        except AttributeError:
+            self._cfg.read(self.configfile)
+
         # create the local tree environment
         self.environ = OrderedDict()
         self.environ['default'] = self._cfg.defaults()
